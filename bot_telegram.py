@@ -7,6 +7,8 @@ from aiogram.utils import executor
 bot = Bot(token=os.getenv('TOKEN'))
 dp = Dispatcher(bot)
 
+async def on_startup(_):
+    print('Бот вышел в онлайн')
 """Стажеры"""
 
 @dp.message_handler(commands=['start', 'help'])
@@ -35,4 +37,4 @@ async def echo_send(message : types.Message):
 
 
 
-executor.start_polling(dp, skip_updates=True)
+executor.start_polling(dp, skip_updates=True, on_startup=on_startup)
