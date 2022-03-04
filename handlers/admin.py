@@ -29,7 +29,7 @@ async def make_changes_command(message: types.Message):
 async def cm_start(message : types.Message):
     if message.from_user.id == ID:
         await FSMAdmin.photo.set()
-        await message.reply('Загрузи фото')
+        await message.reply('Загрузи протокол')
 
 """Отмена загрузки"""
 # @dp.message_handler(state='*', commands='отмена')
@@ -46,9 +46,9 @@ async def cancel_handler(message: types.Message, state: FSMContext):
 async def load_photo(message: types.Message, state: FSMContext):
     if message.from_user.id == ID:
         async with state.proxy() as data:
-            data['photo'] = message.photo[0].file_id
+            data['file'] = message.file[0].file_id
         await FSMAdmin.next()
-        await message.reply('Теперь введи название')
+        await message.reply('А теперь введи Ф.И.О. стажера')
 
 """Второй ответ"""
 # @dp.message_handler(state=FSMAdmin.name)
@@ -57,7 +57,7 @@ async def load_name(message: types.Message, state: FSMContext):
         async with state.proxy() as data:
             data['name'] = message.text
         await FSMAdmin.next()
-        await message.reply('Введи описание')
+        await message.reply('Стажер "прошел" опрос, или "не прошел"?')
 
 """Третий ответ"""
 # @dp.message_handler(state=FSMAdmin.description)
@@ -66,7 +66,7 @@ async def load_description(message: types.Message, state: FSMContext):
         async with state.proxy() as data:
             data['description'] = message.text
         await FSMAdmin.next()
-        await message.reply('Введи цену')
+        await message.reply('И ссылочку к видео на ютуб, пожалуйста')
 
 """Четвертый ответ ответ, обертка данных"""
 @dp.message_handler(state=FSMAdmin.price)
