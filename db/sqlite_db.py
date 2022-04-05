@@ -23,8 +23,8 @@ async def sql_read(message):
 async def sql_read2():
     return cur.execute('SELECT * FROM at_list').fetchall()
 
-async def sql_read3():
-    return cur.execute('SELECT * FROM at_list WHERE document == ?', (fetcher,)).fetchone()
+async def sql_search_command(data):
+    return cur.execute('SELECT * FROM at_list WHERE document == ?', (data,)).fetchall()
 
 async def sql_delete_command(data):
     cur.execute('DELETE FROM at_list WHERE name == ?', (data,))
