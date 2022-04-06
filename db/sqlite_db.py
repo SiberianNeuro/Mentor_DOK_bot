@@ -8,7 +8,11 @@ def sql_start():
     if base:
         print('Data base connected.')
     base.execute('CREATE TABLE IF NOT EXISTS at_list(document TEXT, name TEXT, format TEXT, status TEXT, price TEXT)')
+    base.execute('CREATE TABLE IF NOT EXISTS admins(username TEXT chat_id TEXT)')
+    base.execute('CREATE TABLE IF NOT EXISTS staff(username TEXT chat_id TEXT name TEXT)')
     base.commit()
+
+
 
 async def sql_add_command(state):
     async with state.proxy() as data:

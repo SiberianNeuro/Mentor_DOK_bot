@@ -4,7 +4,7 @@ from keyboards import kb_trainee
 from aiogram.types import ReplyKeyboardRemove
 from db import sqlite_db
 
-# @dp.message_handler(commands=['start', 'help'])
+@dp.message_handler(commands=['start', 'help'])
 async def commands_start(message : types.Message):
     try:
         await bot.send_message(message.from_user.id, 'К Вашим услугам', reply_markup=kb_trainee)
