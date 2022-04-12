@@ -105,8 +105,7 @@ async def load_link(message: types.Message, state: FSMContext):
         async with state.proxy() as data:
             data['link'] = message.text
 
-        # async with state.proxy() as data:
-        #     await message.reply(str(data))
+
 
     await sqlite_db.sql_add_command(state)
     await state.finish()
@@ -138,11 +137,6 @@ async def delete_item(message: types.Message):
 
 
 """Поиск по базе опросов"""
-
-# class FSMFinder(StatesGroup):
-#     trainee_name = State()
-
-
 @dp.message_handler(lambda message: message.text.startswith('Найти'), state=None)
 async def start_search(message: types.Message):
     if message.from_user.username in admins:
