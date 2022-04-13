@@ -8,16 +8,17 @@ def sql_start():
     if base:
         print('Data base connected.')
     base.execute('CREATE TABLE IF NOT EXISTS at_list(document TEXT, name TEXT, format TEXT, status TEXT, price TEXT)')
-    base.execute('CREATE TABLE IF NOT EXISTS admins(chat_id TEXT username TEXT)')
-    base.execute('CREATE TABLE IF NOT EXISTS staff(chat_id TEXT username TEXT name TEXT pos TEXT)')
+    base.execute('CREATE TABLE IF NOT EXISTS admins(chat_id TEXT, username TEXT)')
+    base.execute('CREATE TABLE IF NOT EXISTS staff_DOK(name TEXT, position TEXT, username TEXT, chat_id INT, reg_time TEXT)')
     base.commit()
 
 async def sql_staff_add_command(state):
     async with state.proxy() as data:
-        cur.execute('INSERT INTO staff VALUES (?, ?, ?, ?)', tuple(data.values()))
+        cur.execute('INSERT INTO staff_DOK VALUES (?, ?, ?, ?, ?)', tuple(data.values()))
+        base.commit()
 
 async def sql_staff_chat_id_read():
-    return cur.execute('SELECT chat_id FROM staff').fetchall()
+    return cur.execute('SELECT chat_id FROM staff_DOK').fetchall()
 
 async def sql_add_command(state):
     async with state.proxy() as data:

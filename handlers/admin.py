@@ -10,8 +10,8 @@ from db.sqlite_db import sql_add_command
 from keyboards import admin_kb
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, callback_query
 
-admins = ['siberian_neuro', 'marioneto44ka']
-overlords = ['siberian_neuro']
+admins = [323123946, 555185558, 538133074]
+overlords = [323123946]
 
 class FSMAdmin(StatesGroup):
     document = State()
@@ -26,7 +26,7 @@ class FSMAdmin(StatesGroup):
 # @dp.message_handler(commands=['moderator'])
 async def make_changes_command(message: types.Message):
     global ID
-    if message.from_user.username in admins:
+    if message.from_user.id in admins:
         await bot.send_sticker(message.from_user.id, sticker='CAACAgIAAxkBAAEEYNxiTEhxKcFmVromHC2dj4qNR5qDkAACKgMAApAAAVAglpnor2dcF6MjBA')
         await bot.send_message(message.from_user.id, f'Приветствую тебя, обучатор! 🦾', reply_markup=admin_kb.button_case_admin)
         await bot.send_message(message.from_user.id, text('Что я умею:', '👉🏻 Нажми на кнопку *"Загрузить"*, чтобы передать мне информацию о прошедшей аттестации\n',
@@ -40,7 +40,7 @@ async def make_changes_command(message: types.Message):
 """Запуск машины состояний"""
 # @dp.message_handler(lambda message: message.text.startswith('Загрузить'), state=None)
 async def cm_start(message : types.Message):
-    if message.from_user.username in admins:
+    if message.from_user.id in admins:
         await FSMAdmin.document.set()
         await bot.send_message(message.from_user.id, 'Начнем с протокола, загрузи его')
 
@@ -59,7 +59,7 @@ async def cancel_handler(message: types.Message, state: FSMContext):
 async def load_document(message: types.Message, state: FSMContext):
     global fetcher
     fetcher = message.document.file_id
-    if message.from_user.username in admins:
+    if message.from_user.id in admins:
         async with state.proxy() as data:
             data['document'] = message.document.file_id
         await FSMAdmin.next()
@@ -68,7 +68,7 @@ async def load_document(message: types.Message, state: FSMContext):
 """Загрузка ФИО"""
 # @dp.message_handler(state=FSMAdmin.name)
 async def load_name(message: types.Message, state: FSMContext):
-    if message.from_user.username in admins:
+    if message.from_user.id in admins:
         async with state.proxy() as data:
             data['name'] = message.text
         await FSMAdmin.next()
@@ -79,7 +79,7 @@ async def load_name(message: types.Message, state: FSMContext):
 """Загрузка формата проведения опроса"""
 # @dp.callback_query_handler(lambda x: x.data and x.data.startswith('С'), state=FSMAdmin.form)
 async def load_form(callback_query: types.CallbackQuery, state: FSMContext):
-    if callback_query.from_user.username in admins:
+    if callback_query.from_user.id in admins:
         async with state.proxy() as data:
             data['form'] = callback_query.data
         await FSMAdmin.next()
@@ -91,7 +91,7 @@ async def load_form(callback_query: types.CallbackQuery, state: FSMContext):
 """Загрузка статуса опроса"""
 # @dp.callback_query_handler(lambda x: x.data and x.data.startswith('Аттестация'), state=FSMAdmin.status)
 async def load_status(callback_query: types.CallbackQuery, state: FSMContext):
-    if callback_query.from_user.username in admins:
+    if callback_query.from_user.id in admins:
         async with state.proxy() as data:
             data['status'] = callback_query.data
         await FSMAdmin.next()
@@ -101,12 +101,9 @@ async def load_status(callback_query: types.CallbackQuery, state: FSMContext):
 """Ввод ссылки на ютуб и обертка результатов опроса"""
 # @dp.message_handler(state=FSMAdmin.link)
 async def load_link(message: types.Message, state: FSMContext):
-    if message.from_user.username in admins:
+    if message.from_user.id in admins:
         async with state.proxy() as data:
             data['link'] = message.text
-
-
-
     await sqlite_db.sql_add_command(state)
     await state.finish()
 
@@ -128,7 +125,7 @@ async def del_callback_run(callback_query: types.CallbackQuery):
 """Команда инлайн кнопки"""
 @dp.message_handler(commands='Удалить')
 async def delete_item(message: types.Message):
-    if message.from_user.username in admins:
+    if message.from_user.id in admins:
         read = await sqlite_db.sql_read2()
         for ret in read:
             await bot.send_document(message.from_user.id, ret[0], caption=f'{ret[1]}\nФормат опроса: {ret[2]}\nСтатус аттестации: {ret[3]}\nСсылка YT: {ret[-1]}')
@@ -139,7 +136,7 @@ async def delete_item(message: types.Message):
 """Поиск по базе опросов"""
 @dp.message_handler(lambda message: message.text.startswith('Найти'), state=None)
 async def start_search(message: types.Message):
-    if message.from_user.username in admins:
+    if message.from_user.id in admins:
         await FSMAdmin.trainee_name.set()
         await message.reply('👇🏼 Введи Ф.И.О. сотрудника полностью или по отдельности')
 
@@ -155,7 +152,7 @@ async def cancel_handler(message: types.Message, state: FSMContext):
 
 @dp.message_handler(state=FSMAdmin.trainee_name)
 async def search_item(message: types.Message, state: FSMContext):
-    if message.from_user.username in admins:
+    if message.from_user.id in admins:
         async with state.proxy() as data:
             data['trainee_name'] = message.text
         read = await sqlite_db.sql_read2()
@@ -178,7 +175,7 @@ async def search_item(message: types.Message, state: FSMContext):
 
 @dp.message_handler(commands=['Добавить_обучатора'], state=None)
 async def add_mentor(message: types.Message):
-    if message.from_user.username in overlords:
+    if message.from_user.id in overlords:
         await FSMAdmin.mentor_username.set()
         await message.reply('Линкани юзернейм нового обучатора')
 
@@ -193,7 +190,7 @@ async def cancel_handler(message: types.Message, state: FSMContext):
 
 @dp.message_handler(state=FSMAdmin.mentor_username)
 async def append_mentor_username(message: types.Message, state: FSMContext):
-    if message.from_user.username in overlords:
+    if message.from_user.id in overlords:
         async with state.proxy() as data:
             data['mentor_name'] = message.text[1:]
         admins.append(data['mentor_name'])
