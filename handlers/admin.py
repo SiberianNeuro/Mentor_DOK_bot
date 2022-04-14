@@ -13,6 +13,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, callback_q
 admins = [323123946, 555185558, 538133074]
 overlords = [323123946]
 
+
 class FSMAdmin(StatesGroup):
     document = State()
     name = State()
@@ -23,6 +24,8 @@ class FSMAdmin(StatesGroup):
     mentor_username = State()
 
 """Проверка на админа"""
+
+
 # @dp.message_handler(commands=['moderator'])
 async def make_changes_command(message: types.Message):
     global ID
@@ -38,23 +41,30 @@ async def make_changes_command(message: types.Message):
         await bot.delete_message(message.chat.id, message.message_id)
 
 """Запуск машины состояний"""
+
+
 # @dp.message_handler(lambda message: message.text.startswith('Загрузить'), state=None)
 async def cm_start(message : types.Message):
     if message.from_user.id in admins:
         await FSMAdmin.document.set()
-        await bot.send_message(message.from_user.id, 'Начнем с протокола, загрузи его')
+        await bot.send_message(message.from_user.id, 'Начинаем загрузку результатов аттестации 🤓\nЧтобы выйти из режима загрузки, нажми кнопку "Отмена"', reply_markup=admin_kb.button_case_cancel)
+        await bot.send_message(message.from_user.id, 'Сейчас тебе нужно прислать мне протокол опроса 📜')
 
 """Отмена загрузки"""
-# @dp.message_handler(state='*', commands='отмена')
-# @dp.message_handler(Text(equals='отмена', ignore_case=True), state='*')
+
+
+# @dp.message_handler(state='*', commands='Отмена')
+# @dp.message_handler(Text(equals='Отмена', ignore_case=True), state='*')
 async def cancel_handler(message: types.Message, state: FSMContext):
     current_state = await state.get_state()
     if current_state is None:
         return
     await state.finish()
-    await message.reply('Ну ладно')
+    await message.reply('Ну ладно', reply_markup=admin_kb.button_case_admin)
 
 """Загрузка протокола"""
+
+
 # @dp.message_handler(content_types=['document'], state=FSMAdmin.document)
 async def load_document(message: types.Message, state: FSMContext):
     global fetcher
@@ -66,6 +76,8 @@ async def load_document(message: types.Message, state: FSMContext):
         await bot.send_message(message.from_user.id, 'А теперь введи Ф.И.О. стажера')
 
 """Загрузка ФИО"""
+
+
 # @dp.message_handler(state=FSMAdmin.name)
 async def load_name(message: types.Message, state: FSMContext):
     if message.from_user.id in admins:
@@ -77,6 +89,8 @@ async def load_name(message: types.Message, state: FSMContext):
                     add(InlineKeyboardButton(f'🔴 На врача', callback_data='С И.О. на врача')).add(InlineKeyboardButton(f'🟢 Аттестация помощника', callback_data='Со стажера L1 на сотрудника')))
 
 """Загрузка формата проведения опроса"""
+
+
 # @dp.callback_query_handler(lambda x: x.data and x.data.startswith('С'), state=FSMAdmin.form)
 async def load_form(callback_query: types.CallbackQuery, state: FSMContext):
     if callback_query.from_user.id in admins:
@@ -89,6 +103,8 @@ async def load_form(callback_query: types.CallbackQuery, state: FSMContext):
                     add(InlineKeyboardButton(f'😒 Не прошел', callback_data='Аттестация не пройдена ❌')))
 
 """Загрузка статуса опроса"""
+
+
 # @dp.callback_query_handler(lambda x: x.data and x.data.startswith('Аттестация'), state=FSMAdmin.status)
 async def load_status(callback_query: types.CallbackQuery, state: FSMContext):
     if callback_query.from_user.id in admins:
@@ -99,6 +115,8 @@ async def load_status(callback_query: types.CallbackQuery, state: FSMContext):
         await bot.send_message(callback_query.from_user.id, 'И ссылочку к видео на ютуб, пожалуйста')
 
 """Ввод ссылки на ютуб и обертка результатов опроса"""
+
+
 # @dp.message_handler(state=FSMAdmin.link)
 async def load_link(message: types.Message, state: FSMContext):
     if message.from_user.id in admins:
@@ -110,19 +128,24 @@ async def load_link(message: types.Message, state: FSMContext):
     read = await sqlite_db.sql_read2()
     for ret in read:
         if ret[0] == fetcher:
-            # await bot.send_message(message.from_user.id, f'{ret[1]}\nФормат опроса: {ret[2]}\nСтатус аттестации: {ret[3]}\nСсылка YT: {ret[-1]}')
-            await bot.send_document(message.from_user.id, ret[0], caption=f'{ret[1]}\nФормат опроса: {ret[2]}\nСтатус аттестации: {ret[3]}\nСсылка YT: {ret[-1]}')
+            await bot.send_document(message.from_user.id, ret[0], caption=f'{ret[1]}\nФормат опроса: {ret[2]}\nСтатус аттестации: {ret[3]}\nСсылка YT: {ret[-1]}', reply_markup=admin_kb.button_case_admin)
             await bot.send_message(message.from_user.id, text='Опции:', reply_markup=InlineKeyboardMarkup(). \
                                    add(
                 InlineKeyboardButton(f'Удалить запись аттестации', callback_data=f'del {ret[1]}')))
+            await bot.send_document(-1001776821827, ret[0],
+                                    caption=f'{ret[1]}\nФормат опроса: {ret[2]}\nСтатус аттестации: {ret[3]}\nСсылка YT: {ret[-1]}')
 
 """Выловить команду инлайн кнопки"""
+
+
 @dp.callback_query_handler(lambda x: x.data and x.data.startswith('del '))
 async def del_callback_run(callback_query: types.CallbackQuery):
     await sqlite_db.sql_delete_command(callback_query.data.replace('del ', ''))
     await callback_query.answer(text=f'{callback_query.data.replace("del ", "")} информация удалена', show_alert=True)
 
 """Команда инлайн кнопки"""
+
+
 @dp.message_handler(commands='Удалить')
 async def delete_item(message: types.Message):
     if message.from_user.id in admins:
@@ -134,13 +157,18 @@ async def delete_item(message: types.Message):
 
 
 """Поиск по базе опросов"""
+
+
 @dp.message_handler(lambda message: message.text.startswith('Найти'), state=None)
 async def start_search(message: types.Message):
     if message.from_user.id in admins:
         await FSMAdmin.trainee_name.set()
-        await message.reply('👇🏼 Введи Ф.И.О. сотрудника полностью или по отдельности')
+        await message.reply('👇🏼 Введи Ф.И.О. сотрудника полностью или по отдельности', reply_markup=admin_kb.button_case_cancel)
+
 
 """Отмена загрузки"""
+
+
 @dp.message_handler(state='*', commands='отмена')
 @dp.message_handler(Text(equals='отмена', ignore_case=True), state='*')
 async def cancel_handler(message: types.Message, state: FSMContext):
@@ -148,7 +176,8 @@ async def cancel_handler(message: types.Message, state: FSMContext):
     if current_state is None:
         return
     await state.finish()
-    await message.reply('Ну ладно')
+    await message.reply('Ну ладно', reply_markup=admin_kb.button_case_admin)
+
 
 @dp.message_handler(state=FSMAdmin.trainee_name)
 async def search_item(message: types.Message, state: FSMContext):
@@ -159,9 +188,9 @@ async def search_item(message: types.Message, state: FSMContext):
         read_target = [i for i in read if data['trainee_name'] in i[1]]
         if read_target == []:
             await bot.send_sticker(message.from_user.id, sticker='CAACAgIAAxkBAAEEYONiTEoilaz930YnqFCJ1mOkt2X6SAACZwEAApAAAVAgds06eQ0IVqsjBA')
-            await bot.send_message(message.from_user.id, 'Информации об этом стажере нет')
+            await bot.send_message(message.from_user.id, 'Информации об этом стажере нет', reply_markup=admin_kb.button_case_admin)
         else:
-            await bot.send_sticker(message.from_user.id, sticker='CAACAgIAAxkBAAEEYOViTEpbkiPvnanRvTsdFgIng2RQUQACkwADkAABUCCcUa2lgOTMGCME')
+            await bot.send_sticker(message.from_user.id, sticker='CAACAgIAAxkBAAEEYOViTEpbkiPvnanRvTsdFgIng2RQUQACkwADkAABUCCcUa2lgOTMGCME', reply_markup=admin_kb.button_case_admin)
             for ret in read_target:
                 await bot.send_document(message.from_user.id, ret[0],
                                         caption=f'{ret[1]}\nФормат опроса: {ret[2]}\nСтатус аттестации: {ret[3]}\nСсылка YT: {ret[-1]}')
@@ -170,14 +199,13 @@ async def search_item(message: types.Message, state: FSMContext):
                     InlineKeyboardButton(f'Удалить запись аттестации', callback_data=f'del {ret[1]}')))
     await state.finish()
 
-# class FSMMentor(StatesGroup):
-#     mentor = State()
 
 @dp.message_handler(commands=['Добавить_обучатора'], state=None)
 async def add_mentor(message: types.Message):
     if message.from_user.id in overlords:
         await FSMAdmin.mentor_username.set()
         await message.reply('Линкани юзернейм нового обучатора')
+
 
 @dp.message_handler(state='*', commands='отмена')
 @dp.message_handler(Text(equals='отмена', ignore_case=True), state='*')
@@ -187,6 +215,7 @@ async def cancel_handler(message: types.Message, state: FSMContext):
         return
     await state.finish()
     await message.reply('Ну ладно')
+
 
 @dp.message_handler(state=FSMAdmin.mentor_username)
 async def append_mentor_username(message: types.Message, state: FSMContext):
@@ -198,15 +227,11 @@ async def append_mentor_username(message: types.Message, state: FSMContext):
         await state.finish()
 
 
-
-
-
-
-def register_handlers_admin(dp : Dispatcher):
+def register_handlers_admin(dp: Dispatcher):
     dp.register_message_handler(make_changes_command, commands=['moderator'])
     dp.register_message_handler(cm_start, lambda message: message.text.startswith('Загрузить'), state=None)
-    dp.register_message_handler(cancel_handler, state='*', commands='отмена')
-    dp.register_message_handler(cancel_handler, Text(equals='отмена', ignore_case=True), state='*')
+    dp.register_message_handler(cancel_handler, state='*', commands='Отмена')
+    dp.register_message_handler(cancel_handler, Text(equals='Отмена', ignore_case=True), state='*')
     dp.register_message_handler(load_document, content_types=['document'], state=FSMAdmin.document)
     dp.register_message_handler(load_name, state=FSMAdmin.name)
     dp.register_callback_query_handler(load_form, lambda x: x.data and x.data.startswith('С'), state=FSMAdmin.form)
