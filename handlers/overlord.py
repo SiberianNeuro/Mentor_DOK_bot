@@ -1,16 +1,21 @@
 from aiogram import types, Dispatcher
+from create_bot import dp, bot
 # from aiogram.dispatcher import FSMContext
 # from aiogram.dispatcher.filters.state import State, StatesGroup
 # from aiogram.types import ParseMode
 # from aiogram.utils.markdown import text, bold, italic, code, pre
-# from create_bot import dp, bot
 # from aiogram.dispatcher.filters import Text
 # from db import sqlite_db
 # from db.sqlite_db import sql_add_command
-# from keyboards import admin_kb
 # from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, callback_query
 
 overlords = [323123946]
+
+
+@dp.message_handler(lambda message: message.text == '4 8 15 16 23 42')
+async def say_hello_to_overlord(message: types.Message):
+    if message.from_user.id in overlords:
+        await bot.send_message(message.from_user.id, 'К твоим услугам, шеф.')
 
 
 # @dp.message_handler(content_types=['animation'])
