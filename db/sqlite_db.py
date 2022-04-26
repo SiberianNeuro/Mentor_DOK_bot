@@ -34,8 +34,6 @@ async def sql_read(message):
 
 
 
-
-
 async def item_search():
     return cur.execute('SELECT * FROM at_list').fetchall()
 
@@ -46,3 +44,17 @@ async def sql_search_command(data):
 async def sql_delete_command(data):
     cur.execute('DELETE FROM at_list WHERE name == ?', (data,))
     base.commit()
+
+async def sql_report_trainee(date_1, date_2):
+    return cur.execute(f'SELECT name FROM at_list WHERE date BETWEEN "{date_1}" AND "{date_2}"'
+                       f'AND format == "Со стажера на И.О."')
+
+
+async def sql_report_l1(date_1, date_2):
+    return cur.execute(f'SELECT name FROM at_list WHERE date BETWEEN "{date_1}" AND "{date_2}"'
+                       f'AND format == "Со стажера L1 на сотрудника"')
+
+
+async def sql_report_doc(date_1, date_2):
+    return cur.execute(f'SELECT name FROM at_list WHERE date BETWEEN "{date_1}" AND "{date_2}"'
+                       f'AND format == "С И.О. на врача"')

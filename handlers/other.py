@@ -79,6 +79,7 @@ async def enter_position(message: types.Message, state: FSMContext):
         await state.finish()
 
 
+
 def register_handlers_other(dp : Dispatcher):
     dp.register_message_handler(commands_start, commands=['start'])
     dp.register_message_handler(start_register, commands='register', state=None)

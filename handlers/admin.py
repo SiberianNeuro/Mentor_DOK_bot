@@ -1,14 +1,16 @@
+from typing import Any, Coroutine
+
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram import types, Dispatcher
-from aiogram.types import ParseMode
-from aiogram.utils.markdown import text, bold, italic, code, pre
 from create_bot import dp, bot
 from aiogram.dispatcher.filters import Text
 from db import sqlite_db
-from db.sqlite_db import sql_add_command
 from keyboards import admin_kb
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, callback_query
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from keyboards import simple_cal_callback, SimpleCalendar
+from datetime import datetime
+
 
 admins = [323123946, 555185558, 538133074]
 
@@ -20,30 +22,30 @@ class FSMAdmin(StatesGroup):
     status = State()
     link = State()
     trainee_name = State()
-    mentor_username = State()
-
+    start_date = State()
+    end_date = State()
 
 """Проверка на админа"""
 
 
-@dp.message_handler(commands=['moderator'])
+# @dp.message_handler(commands=['moderator'])
 async def make_changes_command(message: types.Message):
     if message.from_user.id in admins:
-        await bot.send_sticker(message.from_user.id, sticker='CAACAgIAAxkBAAEEYNxiTEhxKcFmVromHC2dj4qNR5qDkAACKgMAApAAAVAglpnor2dcF6MjBA')
-        await bot.send_message(message.from_user.id, f'Приветствую тебя, обучатор! 🦾', reply_markup=admin_kb.button_case_admin)
-        await bot.send_message(message.from_user.id, text('Что я умею:', '👉🏻 Нажми на кнопку *"Загрузить"*, чтобы передать мне информацию о прошедшей аттестации\n',
-                                                      '👉🏻 Нажми кнопку *"Найти"*, чтобы найти информацию о предыдущих аттестациях', sep='\n'), parse_mode=ParseMode.MARKDOWN_V2)
+        await message.answer_sticker(sticker='CAACAgIAAxkBAAEEYNxiTEhxKcFmVromHC2dj4qNR5qDkAACKgMAApAAAVAglpnor2dcF6MjBA')
+        await message.answer(f'Приветствую тебя, обучатор! 🦾', reply_markup=admin_kb.button_case_admin)
+        await message.answer('Что я умею:', '👉🏻 Нажми на кнопку <strong>"Загрузить"</strong>, чтобы передать мне информацию о прошедшей аттестации\n',
+                                                      '👉🏻 Нажми кнопку <strong>"Найти"</strong>, чтобы найти информацию о предыдущих аттестациях')
         await bot.delete_message(message.chat.id, message.message_id)
     else:
-        await bot.send_sticker(message.from_user.id, sticker='CAACAgQAAxkBAAEEY_tiTYxKQPLzeCweS70kX6XWr61f6wACJQ0AAufo-wL2uHDEfdtM1iME')
-        await bot.send_message(message.from_user.id, 'Ты не похож на обучатора 😑\nЕсли ты и правда обучатор, обратись за пропуском к @siberian_neuro')
+        await message.answer_sticker(sticker='CAACAgQAAxkBAAEEY_tiTYxKQPLzeCweS70kX6XWr61f6wACJQ0AAufo-wL2uHDEfdtM1iME')
+        await message.answer('Ты не похож на обучатора 😑\nЕсли ты и правда обучатор, обратись за пропуском к @siberian_neuro')
         await bot.delete_message(message.chat.id, message.message_id)
         await bot.send_message(-1001776821827, f'@{message.from_user.username} хочет получить доступ к панели управления обучаторов.')
 
 """Запуск машины состояний"""
 
 
-@dp.message_handler(lambda message: message.text.startswith('Загрузить'), state=None)
+# @dp.message_handler(lambda message: message.text.startswith('Загрузить'), state=None)
 async def cm_start(message: types.Message):
     if message.from_user.id in admins:
         await FSMAdmin.document.set()
@@ -56,8 +58,8 @@ async def cm_start(message: types.Message):
 """Отмена загрузки"""
 
 
-@dp.message_handler(state='*', commands='Отмена')
-@dp.message_handler(Text(equals='Отмена', ignore_case=True), state='*')
+# @dp.message_handler(state='*', commands='Отмена')
+# @dp.message_handler(Text(equals='Отмена', ignore_case=True), state='*')
 async def cancel_handler(message: types.Message, state: FSMContext):
     current_state = await state.get_state()
     if current_state is None:
@@ -68,7 +70,7 @@ async def cancel_handler(message: types.Message, state: FSMContext):
 """Загрузка протокола"""
 
 
-@dp.message_handler(content_types=['document'], state=FSMAdmin.document)
+# @dp.message_handler(content_types=['document'], state=FSMAdmin.document)
 async def load_document(message: types.Message, state: FSMContext):
     global fetcher
     fetcher = message.document.file_id
@@ -81,7 +83,7 @@ async def load_document(message: types.Message, state: FSMContext):
 """Загрузка ФИО"""
 
 
-@dp.message_handler(state=FSMAdmin.name)
+# @dp.message_handler(state=FSMAdmin.name)
 async def load_name(message: types.Message, state: FSMContext):
     if message.from_user.id in admins:
         async with state.proxy() as data:
@@ -93,7 +95,7 @@ async def load_name(message: types.Message, state: FSMContext):
 """Загрузка формата проведения опроса"""
 
 
-@dp.callback_query_handler(lambda x: x.data and x.data.startswith('С'), state=FSMAdmin.form)
+# @dp.callback_query_handler(lambda x: x.data and x.data.startswith('С'), state=FSMAdmin.form)
 async def load_form(callback_query: types.CallbackQuery, state: FSMContext):
     if callback_query.from_user.id in admins:
         async with state.proxy() as data:
@@ -106,7 +108,7 @@ async def load_form(callback_query: types.CallbackQuery, state: FSMContext):
 """Загрузка статуса опроса"""
 
 
-@dp.callback_query_handler(lambda x: x.data and x.data.startswith('Аттестация'), state=FSMAdmin.status)
+# @dp.callback_query_handler(lambda x: x.data and x.data.startswith('Аттестация'), state=FSMAdmin.status)
 async def load_status(callback_query: types.CallbackQuery, state: FSMContext):
     if callback_query.from_user.id in admins:
         async with state.proxy() as data:
@@ -118,7 +120,7 @@ async def load_status(callback_query: types.CallbackQuery, state: FSMContext):
 """Ввод ссылки на ютуб и обертка результатов опроса"""
 
 
-@dp.message_handler(state=FSMAdmin.link)
+# @dp.message_handler(state=FSMAdmin.link)
 async def load_link(message: types.Message, state: FSMContext):
     if message.from_user.id in admins:
         async with state.proxy() as data:
@@ -138,22 +140,11 @@ async def load_link(message: types.Message, state: FSMContext):
             await bot.send_document(-1001776821827, ret[0],
                                     caption=f'{ret[1]}\nФормат опроса: {ret[2]}\nСтатус аттестации: {ret[3]}\nСсылка YT: {ret[-1]}')
 
-# """Команда инлайн кнопки"""
-#
-#
-# @dp.message_handler(commands='Удалить')
-# async def delete_item(message: types.Message):
-#     if message.from_user.id in admins:
-#         read = await sqlite_db.sql_read2()
-#         for ret in read:
-#             await bot.send_document(message.from_user.id, ret[0], caption=f'{ret[1]}\nФормат опроса: {ret[2]}\nСтатус аттестации: {ret[3]}\nСсылка YT: {ret[-1]}')
-#             await bot.send_message(message.from_user.id, text='Опции:', reply_markup=InlineKeyboardMarkup().\
-#                                    add(InlineKeyboardButton(f'Удалить запись аттестации', callback_data=f'del {ret[1]}')))
 
 """Выловить команду инлайн кнопки"""
 
 
-@dp.callback_query_handler(lambda x: x.data and x.data.startswith('del '))
+# @dp.callback_query_handler(lambda x: x.data and x.data.startswith('del '))
 async def del_callback_run(callback_query: types.CallbackQuery):
     await sqlite_db.sql_delete_command(callback_query.data.replace('del ', ''))
     await callback_query.answer(text=f'{callback_query.data.replace("del ", "")}: информация удалена', show_alert=True)
@@ -161,29 +152,17 @@ async def del_callback_run(callback_query: types.CallbackQuery):
 """Старт поиска по базе опросов"""
 
 
-@dp.message_handler(lambda message: message.text.startswith('Найти'), state=None)
+# @dp.message_handler(lambda message: message.text.startswith('Найти'), state=None)
 async def start_search(message: types.Message):
     if message.from_user.id in admins:
         await FSMAdmin.trainee_name.set()
         await message.reply('👇🏼 Введи Ф.И.О. сотрудника полностью или по отдельности', reply_markup=admin_kb.button_case_cancel)
 
 
-"""Отмена загрузки"""
-
-
-@dp.message_handler(state='*', commands='отмена')
-@dp.message_handler(Text(equals='отмена', ignore_case=True), state='*')
-async def cancel_handler(message: types.Message, state: FSMContext):
-    current_state = await state.get_state()
-    if current_state is None:
-        return
-    await state.finish()
-    await message.reply('Принято 👌', reply_markup=admin_kb.button_case_admin)
-
 """Вывод результатов поиска"""
 
 
-@dp.message_handler(state=FSMAdmin.trainee_name)
+# @dp.message_handler(state=FSMAdmin.trainee_name)
 async def search_item(message: types.Message, state: FSMContext):
     if message.from_user.id in admins:
         async with state.proxy() as data:
@@ -205,33 +184,51 @@ async def search_item(message: types.Message, state: FSMContext):
             await bot.send_message(message.from_user.id, 'Готово!👌', reply_markup=admin_kb.button_case_admin)
     await state.finish()
 
+def report_parser(s_d: dict, e_d: dict, slice_t: list, slice_l: list, slice_d: list):
+    string_t = '\n'.join(slice_t)
+    string_l = '\n'.join(slice_l)
+    string_d = '\n'.join(slice_d)
+    outcome_string = f'За период с {}' \
+                     f'{len(slice_t)} переводов со стажера на И.О.:\n ' \
+                     f'{string_t}' \
+                     f'{len(slice_d)} переводов с И.О. на врача:\n' \
+                     f'{string_d}' \
+                     f'{len(slice_l)} переводов на специалиста L1:\n' \
+                     f'{string_l}' \
+                     f'Всего за указанный период было переведено {len(slice_l) + len(slice_l) + len(slice_d)} сотрудника(-ов).'
+    return outcome_string
 
-"""Добавление нового обучатора"""
-# @dp.message_handler(commands=['Добавить_обучатора'], state=None)
-# async def add_mentor(message: types.Message):
-#     if message.from_user.id in overlords:
-#         await FSMAdmin.mentor_username.set()
-#         await message.reply('Линкани юзернейм нового обучатора')
-#
-#
-# @dp.message_handler(state='*', commands='отмена')
-# @dp.message_handler(Text(equals='отмена', ignore_case=True), state='*')
-# async def cancel_handler(message: types.Message, state: FSMContext):
-#     current_state = await state.get_state()
-#     if current_state is None:
-#         return
-#     await state.finish()
-#     await message.reply('Ну ладно')
-#
-#
-# @dp.message_handler(state=FSMAdmin.mentor_username)
-# async def append_mentor_username(message: types.Message, state: FSMContext):
-#     if message.from_user.id in overlords:
-#         async with state.proxy() as data:
-#             data['mentor_name'] = message.text[1:]
-#         admins.append(data['mentor_name'])
-#         await message.reply('Обучатор добавлен')
-#         await state.finish()
+async def slice_report_start(message: types.Message):
+    if message.from_user.id in admins:
+        await FSMAdmin.start_date.set()
+        await message.answer('Начинаем выгрузку среза по опросам', reply_markup=admin_kb.button_case_cancel)
+        await message.answer('Выбери начальную дату: ', reply_markup=await SimpleCalendar().start_calendar())
+
+async def slice_report_next(callback_query: types.CallbackQuery, callback_data: dict, state: FSMContext):
+    if callback_query.from_user.id in admins:
+        selected, date = await SimpleCalendar().process_selection(callback_query, callback_data)
+        if selected:
+            await state.update_data(start_date=date.strftime('%Y-%m-%d'))
+        await callback_query.answer()
+        await callback_query.message.answer(f"{date.strftime('%Y-%m-%d')}")
+        await state.reset_state(with_data=False)
+        await callback_query.message.answer('Выбери конечную дату: ',
+                                                reply_markup=await SimpleCalendar().start_calendar())
+
+async def slice_report_final(callback_query: types.CallbackQuery, callback_data: dict, state: FSMContext):
+    if callback_query.from_user.id in admins:
+        selected, date = await SimpleCalendar().process_selection(callback_query, callback_data)
+        if selected:
+            await FSMAdmin.end_date.set()
+            await state.update_data(end_date=date.strftime("%Y-%m-%d"))
+        await state.reset_state(with_data=False)
+        slice_report_data = await state.get_data()
+        slice_report_trainee = [i[0] for i in await sqlite_db.sql_report_trainee(slice_report_data['start_date'], slice_report_data['end_date'])]
+        slice_report_l1 = [i[0] for i in await sqlite_db.sql_report_l1(slice_report_data['start_date'], slice_report_data['end_date'])]
+        slice_report_doc = [i[0] for i in await sqlite_db.sql_report_doc(slice_report_data['start_date'], slice_report_data['end_date'])]
+        await callback_query.message.answer(report_parser(slice_report_data['start_date'], slice_report_data['end_date'],
+                                                          slice_report_trainee, slice_report_l1, slice_report_doc))
+
 
 
 def register_handlers_admin(dp: Dispatcher):
@@ -246,6 +243,7 @@ def register_handlers_admin(dp: Dispatcher):
     dp.register_message_handler(load_link, state=FSMAdmin.link)
     dp.register_callback_query_handler(del_callback_run, lambda x: x.data and x.data.startswith('del '))
     dp.register_message_handler(start_search, lambda message: message.text.startswith('Найти'), state=None)
-    dp.register_message_handler(cancel_handler, state='*', commands='Отмена')
-    dp.register_message_handler(cancel_handler, Text(equals='Отмена', ignore_case=True), state='*')
     dp.register_message_handler(search_item, state=FSMAdmin.trainee_name)
+    dp.register_message_handler(slice_report_start, commands=['report'], state=None)
+    dp.register_callback_query_handler(slice_report_next, simple_cal_callback.filter(), state=FSMAdmin.start_date)
+    dp.register_callback_query_handler(slice_report_final, simple_cal_callback.filter())
