@@ -9,6 +9,8 @@ from db import sqlite_db
 from db.sqlite_db import sql_add_command
 from keyboards import admin_kb
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, callback_query
+import datetime
+
 
 admins = [323123946, 555185558, 538133074]
 
@@ -19,6 +21,7 @@ class FSMAdmin(StatesGroup):
     form = State()
     status = State()
     link = State()
+    date = State()
     trainee_name = State()
     mentor_username = State()
 
@@ -123,6 +126,9 @@ async def load_link(message: types.Message, state: FSMContext):
     if message.from_user.id in admins:
         async with state.proxy() as data:
             data['link'] = message.text
+        await FSMAdmin.next()
+        async with state.proxy() as data:
+            data['date'] = str(datetime.date.today())
     await sqlite_db.sql_add_command(state)
     await state.finish()
 
@@ -130,14 +136,15 @@ async def load_link(message: types.Message, state: FSMContext):
     for ret in read:
         if ret[0] == fetcher:
             await bot.send_document(message.from_user.id, ret[0],\
-                                    caption=f'{ret[1]}\nФормат опроса: {ret[2]}\nСтатус аттестации: {ret[3]}\nСсылка YT: {ret[-1]}',\
+                                    caption=f'{ret[1]}\nФормат опроса: {ret[2]}\nСтатус аттестации: {ret[3]}\nСсылка YT: {ret[-2]}',\
                                     reply_markup=admin_kb.button_case_admin)
             await bot.send_message(message.from_user.id, text='Опции:', reply_markup=InlineKeyboardMarkup(). \
                                    add(
                 InlineKeyboardButton(f'Удалить запись аттестации', callback_data=f'del {ret[1]}')))
             await bot.send_document(-1001776821827, ret[0],
-                                    caption=f'{ret[1]}\nФормат опроса: {ret[2]}\nСтатус аттестации: {ret[3]}\nСсылка YT: {ret[-1]}')
-
+                                    caption=f'{ret[1]}\nФормат опроса: {ret[2]}\nСтатус аттестации: {ret[3]}\nСсылка YT: {ret[-2]}')
+            await bot.send_document(-781832035, ret[0],
+                                    caption=f'{ret[1]}\nФормат опроса: {ret[2]}\nСтатус аттестации: {ret[3]}\nСсылка YT: {ret[-2]}')
 # """Команда инлайн кнопки"""
 #
 #
@@ -164,11 +171,12 @@ async def del_callback_run(callback_query: types.CallbackQuery):
 @dp.message_handler(lambda message: message.text.startswith('Найти'), state=None)
 async def start_search(message: types.Message):
     if message.from_user.id in admins:
-        await FSMAdmin.trainee_name.set()
+        await bot.send_message(message.from_user.id, 'Выбери критерий поиска', reply_markup=admin_kb.search_button_case)
         await message.reply('👇🏼 Введи Ф.И.О. сотрудника полностью или по отдельности', reply_markup=admin_kb.button_case_cancel)
 
 
-"""Отмена загрузки"""
+# @dp.callback_query_handler()
+# """Отмена загрузки"""
 
 
 @dp.message_handler(state='*', commands='отмена')
@@ -198,7 +206,7 @@ async def search_item(message: types.Message, state: FSMContext):
                 await bot.send_document(message.from_user.id, ret[0],
                                         caption=f'{ret[1]}\nФормат опроса:'
                                                 f' {ret[2]}\nСтатус аттестации:'
-                                                f' {ret[3]}\nСсылка YT: {ret[-1]}')
+                                                f' {ret[3]}\nСсылка YT: {ret[-2]}')
                 await bot.send_message(message.from_user.id, text='Опции:', reply_markup=InlineKeyboardMarkup().\
                                         add(
                     InlineKeyboardButton(f'Удалить запись аттестации', callback_data=f'del {ret[1]}')))

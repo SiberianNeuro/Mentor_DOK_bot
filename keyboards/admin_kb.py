@@ -16,3 +16,9 @@ button_stage_full.add(button_trainee_L1)
 button_success = InlineKeyboardButton('😏 Прошел', callback_data='Аттестация пройдена ✅')
 button_fault = InlineKeyboardButton('😒 Не прошел', callback_data='Аттестация не пройдена ❌')
 button_outcome_full = InlineKeyboardMarkup(row_width=2).row(button_success, button_fault)
+
+search_buttons = [
+    InlineKeyboardButton('Поиск по фамилии', callback_data='name'),
+    InlineKeyboardButton('Поиск по периоду', callback_data='date'),
+]
+search_button_case = InlineKeyboardMarkup(row_width=2).row(*search_buttons)

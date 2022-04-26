@@ -18,6 +18,8 @@ class FSMRegister(StatesGroup):
     position = State()
     reg_time = State()
 
+ID = None
+
 
 # @dp.message_handler(commands=['start'])
 async def commands_start(message: types.Message):
