@@ -246,4 +246,4 @@ def register_handlers_admin(dp: Dispatcher):
     dp.register_message_handler(search_item, state=FSMAdmin.trainee_name)
     dp.register_message_handler(slice_report_start, commands=['report'], state=None)
     dp.register_callback_query_handler(slice_report_next, simple_cal_callback.filter(), state=FSMAdmin.start_date)
-    dp.register_callback_query_handler(slice_report_final, simple_cal_callback.filter())
+    dp.register_callback_query_handler(slice_report_final, simple_cal_callback.filter(), state=FSMAdmin.end_date)
