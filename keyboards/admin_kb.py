@@ -3,8 +3,9 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMar
 button_load = KeyboardButton('Загрузить')
 button_cancel = KeyboardButton('Отмена')
 button_search = KeyboardButton('Найти')
+button_report = KeyboardButton('Отчет')
 
-button_case_admin = ReplyKeyboardMarkup(resize_keyboard=True).row(button_load, button_search)
+button_case_admin = ReplyKeyboardMarkup(resize_keyboard=True).row(button_load, button_search, button_report)
 button_case_cancel = ReplyKeyboardMarkup(resize_keyboard=True).row(button_cancel)
 
 button_trainee_L3 = InlineKeyboardButton('🟡 На И.О.', callback_data='Со стажера на И.О.')

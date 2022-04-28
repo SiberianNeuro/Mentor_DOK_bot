@@ -33,8 +33,10 @@ async def make_changes_command(message: types.Message):
     if message.from_user.id in admins:
         await message.answer_sticker(sticker='CAACAgIAAxkBAAEEYNxiTEhxKcFmVromHC2dj4qNR5qDkAACKgMAApAAAVAglpnor2dcF6MjBA')
         await message.answer(f'Приветствую тебя, обучатор! 🦾', reply_markup=admin_kb.button_case_admin)
-        await message.answer('Что я умею:', '👉🏻 Нажми на кнопку <strong>"Загрузить"</strong>, чтобы передать мне информацию о прошедшей аттестации\n',
-                                                      '👉🏻 Нажми кнопку <strong>"Найти"</strong>, чтобы найти информацию о предыдущих аттестациях')
+        await message.answer(f'Что я умею:\n\n'
+                             f'👉🏻 Нажми на кнопку <b>"Загрузить"</b>, чтобы передать мне информацию о прошедшей аттестации\n\n'
+                             f'👉🏻 Нажми кнопку <b>"Найти"</b>, чтобы найти информацию о предыдущих аттестациях\n\n'
+                             f'👉🏻 Нажми кнопку <b>"Отчет"</b>, чтобы посмотреть на информацию о всех переводах')
         await bot.delete_message(message.chat.id, message.message_id)
     else:
         await message.answer_sticker(sticker='CAACAgQAAxkBAAEEY_tiTYxKQPLzeCweS70kX6XWr61f6wACJQ0AAufo-wL2uHDEfdtM1iME')
@@ -188,14 +190,18 @@ def report_parser(s_d: dict, e_d: dict, slice_t: list, slice_l: list, slice_d: l
     string_t = '\n'.join(slice_t)
     string_l = '\n'.join(slice_l)
     string_d = '\n'.join(slice_d)
-    outcome_string = f'За период с {}' \
-                     f'{len(slice_t)} переводов со стажера на И.О.:\n ' \
-                     f'{string_t}' \
-                     f'{len(slice_d)} переводов с И.О. на врача:\n' \
-                     f'{string_d}' \
-                     f'{len(slice_l)} переводов на специалиста L1:\n' \
-                     f'{string_l}' \
-                     f'Всего за указанный период было переведено {len(slice_l) + len(slice_l) + len(slice_d)} сотрудника(-ов).'
+    outcome_string = f'За период с <b>{s_d}</b> по <b>{e_d}</b> было проведено:\n'\
+                     f'\n'\
+                     f'<u>{len(slice_t)} перевода(-ов) со стажера на И.О.:</u>\n' \
+                     f'{string_t}\n'\
+                     f'\n'\
+                     f'<u>{len(slice_d)} перевода(-ов) с И.О. на врача:</u>\n' \
+                     f'{string_d}\n'\
+                     f'\n'\
+                     f'<u>{len(slice_l)} перевода(-ов) на специалиста L1:</u>\n' \
+                     f'{string_l}\n'\
+                     f'\n'\
+                     f'Всего за указанный период было переведено {len(slice_l) + len(slice_l) + len(slice_d)} сотрудника(-ов) 🤩'
     return outcome_string
 
 async def slice_report_start(message: types.Message):
@@ -210,7 +216,7 @@ async def slice_report_next(callback_query: types.CallbackQuery, callback_data: 
         if selected:
             await state.update_data(start_date=date.strftime('%Y-%m-%d'))
         await callback_query.answer()
-        await callback_query.message.answer(f"{date.strftime('%Y-%m-%d')}")
+        await callback_query.message.delete()
         await state.reset_state(with_data=False)
         await callback_query.message.answer('Выбери конечную дату: ',
                                                 reply_markup=await SimpleCalendar().start_calendar())
@@ -221,13 +227,14 @@ async def slice_report_final(callback_query: types.CallbackQuery, callback_data:
         if selected:
             await FSMAdmin.end_date.set()
             await state.update_data(end_date=date.strftime("%Y-%m-%d"))
+        await callback_query.message.delete()
         await state.reset_state(with_data=False)
         slice_report_data = await state.get_data()
         slice_report_trainee = [i[0] for i in await sqlite_db.sql_report_trainee(slice_report_data['start_date'], slice_report_data['end_date'])]
         slice_report_l1 = [i[0] for i in await sqlite_db.sql_report_l1(slice_report_data['start_date'], slice_report_data['end_date'])]
         slice_report_doc = [i[0] for i in await sqlite_db.sql_report_doc(slice_report_data['start_date'], slice_report_data['end_date'])]
         await callback_query.message.answer(report_parser(slice_report_data['start_date'], slice_report_data['end_date'],
-                                                          slice_report_trainee, slice_report_l1, slice_report_doc))
+                                                          slice_report_trainee, slice_report_l1, slice_report_doc), reply_markup=admin_kb.button_case_admin)
 
 
 
@@ -244,6 +251,6 @@ def register_handlers_admin(dp: Dispatcher):
     dp.register_callback_query_handler(del_callback_run, lambda x: x.data and x.data.startswith('del '))
     dp.register_message_handler(start_search, lambda message: message.text.startswith('Найти'), state=None)
     dp.register_message_handler(search_item, state=FSMAdmin.trainee_name)
-    dp.register_message_handler(slice_report_start, commands=['report'], state=None)
+    dp.register_message_handler(slice_report_start, lambda message: message.text.startswith('Отчет'), state=None)
     dp.register_callback_query_handler(slice_report_next, simple_cal_callback.filter(), state=FSMAdmin.start_date)
-    dp.register_callback_query_handler(slice_report_final, simple_cal_callback.filter(), state=FSMAdmin.end_date)
+    dp.register_callback_query_handler(slice_report_final, simple_cal_callback.filter())
