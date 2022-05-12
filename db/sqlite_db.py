@@ -27,7 +27,8 @@ async def sql_staff_chat_id_read():
 
 async def sql_add_command(state):
     async with state.proxy() as data:
-        cur.execute('INSERT INTO at_list VALUES (document, name, format, status, link, date)', tuple(data.values()))
+        cur.execute('INSERT INTO at_list (document, name, format, status, link, date) VALUES (?, ?, ?, ?, ?, ?)',
+                    tuple(data.values()))
         base.commit()
 
 

@@ -11,7 +11,7 @@ from keyboards import admin_kb
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, callback_query
 import datetime
 
-admins = [323123946, 555185558, 538133074]
+admins = [323123946, 555185558, 538133074,]
 
 
 class FSMAdmin(StatesGroup):
