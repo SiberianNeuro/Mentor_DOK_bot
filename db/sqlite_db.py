@@ -42,7 +42,7 @@ async def sql_search_command(data):
     return cur.execute('SELECT * FROM at_list WHERE document == ?', (data,)).fetchall()
 
 async def sql_delete_command(data):
-    cur.execute('DELETE FROM at_list WHERE name == ?', (data,))
+    cur.execute('DELETE FROM at_list WHERE exam_id == ?', (data,))
     base.commit()
 
 async def sql_report_trainee(date_1, date_2):

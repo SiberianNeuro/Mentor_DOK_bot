@@ -134,13 +134,13 @@ async def load_link(message: types.Message, state: FSMContext):
     for ret in read:
         if ret[0] == fetcher:
             await bot.send_document(message.from_user.id, ret[0],\
-                                    caption=f'{ret[1]}\nФормат опроса: {ret[2]}\nСтатус аттестации: {ret[3]}\nСсылка YT: {ret[-1]}',\
+                                    caption=f'{ret[1]}\nФормат опроса: {ret[2]}\nСтатус аттестации: {ret[3]}\nСсылка YT: {ret[-3]}',\
                                     reply_markup=admin_kb.button_case_admin)
             await bot.send_message(message.from_user.id, text='Опции:', reply_markup=InlineKeyboardMarkup(). \
                                    add(
-                InlineKeyboardButton(f'Удалить запись аттестации', callback_data=f'del {ret[1]}')))
+                InlineKeyboardButton(f'Удалить запись аттестации', callback_data=f'del {ret[-1]}')))
             await bot.send_document(-1001776821827, ret[0],
-                                    caption=f'{ret[1]}\nФормат опроса: {ret[2]}\nСтатус аттестации: {ret[3]}\nСсылка YT: {ret[-1]}')
+                                    caption=f'{ret[1]}\nФормат опроса: {ret[2]}\nСтатус аттестации: {ret[3]}\nСсылка YT: {ret[-3]}')
 
 
 """Выловить команду инлайн кнопки"""
@@ -149,7 +149,7 @@ async def load_link(message: types.Message, state: FSMContext):
 # @dp.callback_query_handler(lambda x: x.data and x.data.startswith('del '))
 async def del_callback_run(callback_query: types.CallbackQuery):
     await sqlite_db.sql_delete_command(callback_query.data.replace('del ', ''))
-    await callback_query.answer(text=f'{callback_query.data.replace("del ", "")}: информация удалена', show_alert=True)
+    await callback_query.answer(text=f'Информация удалена', show_alert=True)
 
 """Старт поиска по базе опросов"""
 
@@ -179,10 +179,10 @@ async def search_item(message: types.Message, state: FSMContext):
                 await bot.send_document(message.from_user.id, ret[0],
                                         caption=f'{ret[1]}\nФормат опроса:'
                                                 f' {ret[2]}\nСтатус аттестации:'
-                                                f' {ret[3]}\nСсылка YT: {ret[-1]}')
+                                                f' {ret[3]}\nСсылка YT: {ret[-3]}')
                 await bot.send_message(message.from_user.id, text='Опции:', reply_markup=InlineKeyboardMarkup().\
                                         add(
-                    InlineKeyboardButton(f'Удалить запись аттестации', callback_data=f'del {ret[1]}')))
+                    InlineKeyboardButton(f'Удалить запись аттестации', callback_data=f'del {ret[-1]}')))
             await bot.send_message(message.from_user.id, 'Готово!👌', reply_markup=admin_kb.button_case_admin)
     await state.finish()
 
