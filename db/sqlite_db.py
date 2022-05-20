@@ -27,12 +27,6 @@ async def sql_add_command(state):
         cur.execute('INSERT INTO at_list VALUES (?, ?, ?, ?, ?)', tuple(data.values()))
         base.commit()
 
-async def sql_read(message):
-    for ret in cur.execute('SELECT * FROM at_list WHERE document == ?', (ret[0],)).fetchone():
-        await bot.send_message(message.from_user.id, f'{ret[1]}\nОписание: {ret[2]}\nЦена: {ret[-1]}')
-        await bot.send_document(message.from_user.id, ret[0])
-
-
 
 async def item_search():
     return cur.execute('SELECT * FROM at_list').fetchall()
@@ -47,14 +41,14 @@ async def sql_delete_command(data):
 
 async def sql_report_trainee(date_1, date_2):
     return cur.execute(f'SELECT name FROM at_list WHERE date BETWEEN "{date_1}" AND "{date_2}"'
-                       f'AND format == "Со стажера на И.О."')
+                       f'AND format == "Со стажера на И.О." AND status == "Аттестация пройдена ✅"')
 
 
 async def sql_report_l1(date_1, date_2):
     return cur.execute(f'SELECT name FROM at_list WHERE date BETWEEN "{date_1}" AND "{date_2}"'
-                       f'AND format == "Со стажера L1 на сотрудника"')
+                       f'AND format == "Со стажера L1 на сотрудника" AND status == "Аттестация пройдена ✅"')
 
 
 async def sql_report_doc(date_1, date_2):
     return cur.execute(f'SELECT name FROM at_list WHERE date BETWEEN "{date_1}" AND "{date_2}"'
-                       f'AND format == "С И.О. на врача"')
+                       f'AND format == "С И.О. на врача" AND status == "Аттестация пройдена ✅"')

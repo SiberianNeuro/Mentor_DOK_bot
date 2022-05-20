@@ -201,7 +201,7 @@ def report_parser(s_d: dict, e_d: dict, slice_t: list, slice_l: list, slice_d: l
                      f'<u>{len(slice_l)} перевода(-ов) на специалиста L1:</u>\n' \
                      f'{string_l}\n'\
                      f'\n'\
-                     f'Всего за указанный период было переведено {len(slice_l) + len(slice_l) + len(slice_d)} сотрудника(-ов) 🤩'
+                     f'Всего за указанный период было переведено {len(slice_l) + len(slice_t) + len(slice_d)} сотрудника(-ов) 🤩'
     return outcome_string
 
 async def slice_report_start(message: types.Message):
@@ -228,14 +228,14 @@ async def slice_report_final(callback_query: types.CallbackQuery, callback_data:
             await FSMAdmin.end_date.set()
             await state.update_data(end_date=date.strftime("%Y-%m-%d"))
         await callback_query.message.delete()
-        await state.reset_state(with_data=False)
+
         slice_report_data = await state.get_data()
         slice_report_trainee = [i[0] for i in await sqlite_db.sql_report_trainee(slice_report_data['start_date'], slice_report_data['end_date'])]
         slice_report_l1 = [i[0] for i in await sqlite_db.sql_report_l1(slice_report_data['start_date'], slice_report_data['end_date'])]
         slice_report_doc = [i[0] for i in await sqlite_db.sql_report_doc(slice_report_data['start_date'], slice_report_data['end_date'])]
         await callback_query.message.answer(report_parser(slice_report_data['start_date'], slice_report_data['end_date'],
                                                           slice_report_trainee, slice_report_l1, slice_report_doc), reply_markup=admin_kb.button_case_admin)
-
+        await state.reset_state(with_data=False)
 
 
 def register_handlers_admin(dp: Dispatcher):
