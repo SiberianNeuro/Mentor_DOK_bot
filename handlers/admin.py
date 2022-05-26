@@ -8,6 +8,7 @@ from aiogram.dispatcher.filters import Text
 from db import sqlite_db
 from db.sqlite_db import sql_add_command
 from keyboards import admin_kb
+from keyboards.admin_kb import get_format_keyboard, get_status_keyboard
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, callback_query
 import datetime
 
@@ -101,21 +102,21 @@ async def load_name(message: types.Message, state: FSMContext):
             data['name'] = message.text
         await FSMAdmin.next()
         await bot.send_message(message.from_user.id, 'В каком формате проходил опрос?',
-                               reply_markup=admin_kb.button_stage_full)
+                               reply_markup=get_format_keyboard())
 
 
 """Загрузка формата проведения опроса"""
 
 
-@dp.callback_query_handler(lambda x: x.data and x.data.startswith('С'), state=FSMAdmin.form)
+@dp.callback_query_handler(lambda x: x.data and x.data.startswith('format'), state=FSMAdmin.form)
 async def load_form(callback_query: types.CallbackQuery, state: FSMContext):
     if callback_query.from_user.id in admins:
         async with state.proxy() as data:
-            data['form'] = callback_query.data
+            data['form'] = callback_query.data.replace("format: ", "")
         await FSMAdmin.next()
         await bot.answer_callback_query(callback_query.id)
         await bot.send_message(callback_query.from_user.id, 'А решение по стажеру какое?',
-                               reply_markup=admin_kb.button_outcome_full)
+                               reply_markup=get_status_keyboard())
 
 
 """Загрузка статуса опроса"""
@@ -148,16 +149,32 @@ async def load_link(message: types.Message, state: FSMContext):
     read = await sqlite_db.item_search()
     for ret in read:
         if ret[0] == fetcher:
-            await bot.send_document(message.from_user.id, ret[0], \
-                                    caption=f'{ret[1]}\nФормат опроса: {ret[2]}\nСтатус аттестации: {ret[3]}\nСсылка YT: {ret[-3]}', \
-                                    reply_markup=admin_kb.button_case_admin)
-            await bot.send_message(message.from_user.id, text='Опции:', reply_markup=InlineKeyboardMarkup(). \
-                                   add(
-                InlineKeyboardButton(f'Удалить запись аттестации', callback_data=f'del {ret[-1]}')))
-            await bot.send_document(-1001776821827, ret[0],
-                                    caption=f'{ret[1]}\nФормат опроса: {ret[2]}\nСтатус аттестации: {ret[3]}\nСсылка YT: {ret[-3]}')
-            await bot.send_document(-781832035, ret[0],
-                                    caption=f'{ret[1]}\nФормат опроса: {ret[2]}\nСтатус аттестации: {ret[3]}\nСсылка YT: {ret[-3]}')
+            # Ответ в личные сообщения обучатору
+            await bot.send_document(
+                message.from_user.id, ret[0],
+                caption=f'{ret[1]}\nФормат опроса: {ret[2]}\nСтатус аттестации: {ret[3]}\nСсылка YT: {ret[-3]}',
+                reply_markup=admin_kb.button_case_admin
+            )
+            await bot.send_message(
+                message.from_user.id, text='Опции:', reply_markup=InlineKeyboardMarkup().add(
+                    InlineKeyboardButton(f'Удалить запись аттестации', callback_data=f'del {ret[-1]}')
+                )
+            )
+            # Если аттестация пройдена, отправить в чат к Даше Шкред
+            if ret[3] == 'Аттестация пройдена ✅' and ret[2] not in ['Опрос 4-го дня', 'Внутренний опрос']:
+                await bot.send_document(
+                    -781832035, ret[0],
+                    caption=f'{ret[1]}\nФормат опроса: {ret[2]}\nСтатус аттестации: {ret[3]}\nСсылка YT: {ret[-3]}'
+                )
+                await bot.send_document(
+                    -1001776821827, ret[0],
+                    caption=f'{ret[1]}\nФормат опроса: {ret[2]}\nСтатус аттестации: {ret[3]}\nСсылка YT: {ret[-3]}'
+                )
+            # Отправка в чат "логи бота обучаторов" для контроля корректности выполнения команд
+            await bot.send_document(
+                -1001776821827, ret[0],
+                caption=f'{ret[1]}\nФормат опроса: {ret[2]}\nСтатус аттестации: {ret[3]}\nСсылка YT: {ret[-3]}'
+            )
 
 
 # """Команда инлайн кнопки"""
@@ -178,7 +195,7 @@ async def load_link(message: types.Message, state: FSMContext):
 @dp.callback_query_handler(lambda x: x.data and x.data.startswith('del '))
 async def del_callback_run(callback_query: types.CallbackQuery):
     await sqlite_db.sql_delete_command(callback_query.data.replace('del ', ''))
-    await callback_query.answer(text=f'{callback_query.data.replace("del ", "")}: информация удалена', show_alert=True)
+    await callback_query.answer(text='Информация удалена', show_alert=True)
 
 
 """Старт поиска по базе опросов"""
