@@ -17,5 +17,6 @@ async def menu_command(message: types.Message):
 
 
 def register_handlers_trainee(dp: Dispatcher):
+    dp.register_message_handler(commands_start, commands=['start', 'help'])
     dp.register_message_handler(bot_open_command, commands=['Режим_работы'])
     dp.register_message_handler(menu_command, commands=['Меню'])
