@@ -1,4 +1,6 @@
+import logging
 import sqlite3 as sq
+import logging
 
 
 def sql_start():
@@ -6,7 +8,7 @@ def sql_start():
     base = sq.connect('mentor_base.db')
     cur = base.cursor()
     if base:
-        print('Data base connected.')
+        logging.info('Database connected')
     base.execute('CREATE TABLE IF NOT EXISTS at_list(document TEXT, '
                  'name TEXT, format TEXT, status TEXT, link TEXT, '
                  'date DATE, exam_id INTEGER PRIMARY KEY)')

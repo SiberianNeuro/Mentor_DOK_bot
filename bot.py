@@ -1,3 +1,5 @@
+import logging
+
 from aiogram.utils import executor
 
 from app.utils.misc.set_bot_commands import set_default_commands
@@ -6,15 +8,18 @@ from loader import dp
 
 from app.db import sqlite_db
 from app.handlers.users import admin, other, overlord, trainee
-from app.filters.admin import AdminFilter
 
 
 async def on_startup(dispatcher):
     await set_default_commands(dispatcher)
     await on_startup_notify(dispatcher)
+    logging.basicConfig(format=u'%(filename)s [LINE:%(lineno)d] #%(levelname)-8s [%(asctime)s]  %(message)s',
+                        level=logging.INFO,
+                        # level=logging.DEBUG,  # Можно заменить на другой уровень логгирования.
+                        )
     sqlite_db.sql_start()
 
-def register_all
+
 trainee.register_handlers_trainee(dp)
 admin.register_handlers_admin(dp)
 other.register_handlers_other(dp)
