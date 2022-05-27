@@ -12,7 +12,7 @@ from keyboards.admin_kb import get_format_keyboard, get_status_keyboard
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, callback_query
 import datetime
 
-admins = [323123946, 555185558, 538133074,]
+admins = [323123946, 555185558, 538133074, 949960854, 564703276]
 
 
 class FSMAdmin(StatesGroup):
@@ -164,10 +164,6 @@ async def load_link(message: types.Message, state: FSMContext):
             if ret[3] == 'Аттестация пройдена ✅' and ret[2] not in ['Опрос 4-го дня', 'Внутренний опрос']:
                 await bot.send_document(
                     -781832035, ret[0],
-                    caption=f'{ret[1]}\nФормат опроса: {ret[2]}\nСтатус аттестации: {ret[3]}\nСсылка YT: {ret[-3]}'
-                )
-                await bot.send_document(
-                    -1001776821827, ret[0],
                     caption=f'{ret[1]}\nФормат опроса: {ret[2]}\nСтатус аттестации: {ret[3]}\nСсылка YT: {ret[-3]}'
                 )
             # Отправка в чат "логи бота обучаторов" для контроля корректности выполнения команд
