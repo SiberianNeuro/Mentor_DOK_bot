@@ -8,7 +8,7 @@ from aiogram.dispatcher.filters import Text
 from db import sqlite_db
 from keyboards import admin_kb
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from keyboards import simple_cal_callback, SimpleCalendar
+from aiogram_calendar import simple_cal_callback, SimpleCalendar
 from datetime import datetime
 
 
@@ -206,7 +206,6 @@ def report_parser(s_d: dict, e_d: dict, slice_t: list, slice_l: list, slice_d: l
 
 async def slice_report_start(message: types.Message):
     if message.from_user.id in admins:
-        await FSMAdmin.start_date.set()
         await message.answer('Начинаем выгрузку среза по опросам', reply_markup=admin_kb.button_case_cancel)
         await message.answer('Выбери начальную дату: ', reply_markup=await SimpleCalendar().start_calendar())
 
@@ -225,9 +224,7 @@ async def slice_report_final(callback_query: types.CallbackQuery, callback_data:
     if callback_query.from_user.id in admins:
         selected, date = await SimpleCalendar().process_selection(callback_query, callback_data)
         if selected:
-            await FSMAdmin.end_date.set()
-            await state.update_data(end_date=date.strftime("%Y-%m-%d"))
-        await callback_query.message.delete()
+            await callback_query.message.delete()
 
         slice_report_data = await state.get_data()
         slice_report_trainee = [i[0] for i in await sqlite_db.sql_report_trainee(slice_report_data['start_date'], slice_report_data['end_date'])]
@@ -251,6 +248,6 @@ def register_handlers_admin(dp: Dispatcher):
     dp.register_callback_query_handler(del_callback_run, lambda x: x.data and x.data.startswith('del '))
     dp.register_message_handler(start_search, lambda message: message.text.startswith('Найти'), state=None)
     dp.register_message_handler(search_item, state=FSMAdmin.trainee_name)
-    dp.register_message_handler(slice_report_start, lambda message: message.text.startswith('Отчет'), state=None)
-    dp.register_callback_query_handler(slice_report_next, simple_cal_callback.filter(), state=FSMAdmin.start_date)
+    dp.register_message_handler(slice_report_start, lambda message: message.text.startswith('Отчет'))
+    dp.register_callback_query_handler(slice_report_next, simple_cal_callback.filter())
     dp.register_callback_query_handler(slice_report_final, simple_cal_callback.filter())
