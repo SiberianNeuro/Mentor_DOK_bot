@@ -1,8 +1,4 @@
 from aiogram import types, Dispatcher
-from create_bot import dp, bot
-from keyboards import kb_trainee
-from aiogram.types import ReplyKeyboardRemove
-from db import sqlite_db
 
 
 # @dp.message_handler(commands=['Режим_работы'])

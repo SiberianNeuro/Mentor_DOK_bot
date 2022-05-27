@@ -1,7 +1,5 @@
 import sqlite3 as sq
-from create_bot import bot
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from keyboards import admin_kb
+
 
 def sql_start():
     global base, cur

@@ -1,13 +1,9 @@
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram import types, Dispatcher
-from aiogram.types import ParseMode
-from aiogram.utils.markdown import text, bold, italic, code, pre
-from create_bot import dp, bot
+from loader import bot
 from aiogram.dispatcher.filters import Text
-from db import sqlite_db
-from db.sqlite_db import sql_staff_add_command
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, callback_query
+from app.db import sqlite_db
 import datetime
 
 

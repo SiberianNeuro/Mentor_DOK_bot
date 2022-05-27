@@ -2,17 +2,14 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram import types, Dispatcher
 from aiogram.types import ParseMode
-from aiogram.utils.markdown import text, bold, italic, code, pre
-from create_bot import dp, bot
+from aiogram.utils.markdown import text
+from loader import dp, bot
 from aiogram.dispatcher.filters import Text
-from db import sqlite_db
-from db.sqlite_db import sql_add_command
-from keyboards import admin_kb
-from keyboards.admin_kb import get_format_keyboard, get_status_keyboard
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, callback_query
+from app.db import sqlite_db
+from app.keyboards import admin_kb
+from app.keyboards.admin_kb import get_format_keyboard, get_status_keyboard
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 import datetime
-
-admins = [323123946, 555185558, 538133074, 949960854, 564703276]
 
 
 class FSMAdmin(StatesGroup):
