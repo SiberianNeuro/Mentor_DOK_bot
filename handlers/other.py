@@ -58,7 +58,9 @@ async def enter_name(message: types.Message, state: FSMContext):
         data['name'] = message.text.title()
     await bot.send_message(message.from_user.id, str(data))
     await FSMRegister.next()
-    await bot.send_message(message.from_user.id, f'Приятно познакомиться, {message.text.split()[1]}, а теперь расскажи мне, какая у тебя должность в ДОКе', reply_markup=other_kb.pos_case_button)
+    await bot.send_message(message.from_user.id, f'Приятно познакомиться, {message.text.split()[1]}, '
+                                                 f'а теперь расскажи мне, какая у тебя должность в ДОКе',
+                           reply_markup=other_kb.pos_case_button)
 
 
 # @dp.message_handler(state="*")
@@ -76,6 +78,9 @@ async def enter_position(callback_query: types.CallbackQuery, state: FSMContext)
     await sqlite_db.sql_staff_add_command(state)
     await state.finish()
 
+@dp.message_handler(lambda message: message.text.startswith('Спасибо') or message.text.startswith('спасибо'))
+async def no_problem(message: types.Message):
+    await message.reply_animation('CgACAgQAAxkBAAIK22Ja_j34BiSLTE1cAAFfZWHqUFigbwAC3gEAAuMCVVMnLbW7zZm4QiQE')
 
 def register_handlers_other(dp: Dispatcher):
     dp.register_message_handler(commands_start, commands=['start'])
@@ -84,5 +89,6 @@ def register_handlers_other(dp: Dispatcher):
     dp.register_message_handler(cancel_handler, Text(equals='отмена', ignore_case=True), state='*')
     dp.register_message_handler(enter_name, state=FSMRegister.name)
     dp.register_callback_query_handler(enter_position, lambda x: x.data, state="*")
-
+    dp.register_message_handler(no_problem, lambda message: message.text.startswith('Спасибо') or message.text.
+                                startswith('спасибо'))
 

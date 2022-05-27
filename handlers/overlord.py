@@ -34,14 +34,6 @@ async def sticker_id(message: types.Message):
         pass
 
 
-async def photo_id(message: types.Message):
-    if message.from_user.id in overlords:
-        await message.reply_photo(message.photo[-1].file_id)
-    else:
-        pass
-
-
 def register_handlers_overlord(dp: Dispatcher):
-    dp.register_message_handler(photo_id, content_types=['photo'])
     dp.register_message_handler(gif_id, content_types=['animation'])
     dp.register_message_handler(sticker_id, content_types=['sticker'])
