@@ -1,27 +1,13 @@
 from aiogram.dispatcher import FSMContext
-from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram import types, Dispatcher
-from aiogram.types import ParseMode
-from aiogram.utils.markdown import text, bold, italic, code, pre
-from create_bot import dp, bot
-from aiogram.dispatcher.filters import Text
-from db import sqlite_db
-from keyboards import other_kb
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, callback_query
-import datetime
+
+from loader import dp, bot
+from aiogram.dispatcher.filters import CommandStart
+from app.keyboards import other_kb
+from app.utils.misc.states import FSMRegister
 
 
-class FSMRegister(StatesGroup):
-    chat_id = State()
-    name = State()
-    username = State()
-    position = State()
-    reg_time = State()
-
-ID = None
-
-
-@dp.message_handler(commands=['start'])
+@dp.message_handler(CommandStart())
 async def commands_start(message: types.Message):
     try:
         await bot.send_message(message.from_user.id, text('Привет ✌  \nЯ помощник в медицинском отделе ДОК 🤖\n'

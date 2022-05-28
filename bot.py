@@ -20,7 +20,6 @@ async def on_startup(dispatcher):
     sqlite_db.sql_start()
 
 
-
 admin.register_handlers_admin(dp)
 other.register_handlers_other(dp)
 overlord.register_handlers_overlord(dp)

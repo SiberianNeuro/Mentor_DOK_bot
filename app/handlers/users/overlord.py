@@ -1,13 +1,6 @@
 from aiogram import types, Dispatcher
-from create_bot import dp, bot
-# from aiogram.dispatcher import FSMContext
-# from aiogram.dispatcher.filters.state import State, StatesGroup
-# from aiogram.types import ParseMode
-# from aiogram.utils.markdown import text, bold, italic, code, pre
-# from aiogram.dispatcher.filters import Text
-# from db import sqlite_db
-# from db.sqlite_db import sql_add_command
-# from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, callback_query
+from loader import dp, bot
+
 
 overlords = [323123946]
 
