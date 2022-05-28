@@ -2,3 +2,4 @@ venv/*
 mentor_base.db
 bot.log
 .env
+.idea/*
