@@ -7,6 +7,5 @@ class FSMAdmin(StatesGroup):
     form = State()
     status = State()
     link = State()
-    date = State()
     trainee_name = State()
     mentor_username = State()

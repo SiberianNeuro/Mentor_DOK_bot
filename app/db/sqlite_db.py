@@ -1,4 +1,3 @@
-import logging
 import sqlite3 as sq
 import logging
 
@@ -17,33 +16,35 @@ def sql_start():
                  'reg_time TEXT)')
     base.commit()
 
+
 async def sql_staff_add_command(state):
     async with state.proxy() as data:
         cur.execute('INSERT INTO staff_DOK VALUES (?, ?, ?, ?, ?)', tuple(data.values()))
         base.commit()
 
+
 async def sql_staff_chat_id_read():
     return cur.execute('SELECT chat_id FROM staff_DOK').fetchall()
 
+
 async def sql_add_command(state):
     async with state.proxy() as data:
-        cur.execute('INSERT INTO at_list (document, name, format, status, link, date) VALUES (?, ?, ?, ?, ?, ?)',
-                    tuple(data.values()))
+        cur.execute(
+            "INSERT INTO at_list (document, name, format, status, link, date) VALUES (?, ?, ?, ?, ?, CURRENT_DATE)",
+            tuple(data.values())
+        )
         base.commit()
 
 
-
-
-
-
-
-async def item_search():
-    return cur.execute('SELECT * FROM at_list').fetchall()
-
-
-async def sql_search_command(data):
+async def item_search(data):
     return cur.execute('SELECT * FROM at_list WHERE document == ?', (data,)).fetchall()
+
+
+async def name_search(data):
+    return cur.execute('SELECT * FROM at_list WHERE name LIKE ?', ('%' + data + '%',)).fetchall()
+
 
 async def sql_delete_command(data):
     cur.execute('DELETE FROM at_list WHERE exam_id == ?', (data,))
     base.commit()
+    

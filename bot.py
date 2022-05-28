@@ -7,7 +7,7 @@ from app.utils.notify_admins import on_startup_notify
 from loader import dp
 
 from app.db import sqlite_db
-from app.handlers.users import admin, other, overlord, trainee
+from app.handlers.users import admin, other, overlord
 
 
 async def on_startup(dispatcher):
@@ -20,7 +20,7 @@ async def on_startup(dispatcher):
     sqlite_db.sql_start()
 
 
-trainee.register_handlers_trainee(dp)
+
 admin.register_handlers_admin(dp)
 other.register_handlers_other(dp)
 overlord.register_handlers_overlord(dp)
