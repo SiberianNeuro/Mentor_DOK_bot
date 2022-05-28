@@ -223,7 +223,7 @@ async def cancel_handler(message: types.Message, state: FSMContext):
 async def search_item(message: types.Message, state: FSMContext):
     if message.from_user.id in admins:
         async with state.proxy() as data:
-            data['trainee_name'] = message.text.title()
+            data['trainee_name'] = message.text
         read = await sqlite_db.item_search()
         read_target = [i for i in read if data['trainee_name'] in i[1]]
         if not read_target:

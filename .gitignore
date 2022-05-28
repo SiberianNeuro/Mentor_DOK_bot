@@ -1,4 +1,5 @@
 venv/*
 mentor_base.db
 bot.log
-base.py
+.env
+.idea/*
