@@ -2,8 +2,12 @@ from aiogram import types
 
 from aiogram.dispatcher.filters import BoundFilter
 
-from app.services.config import load_config
+from app.db.mysql_db import chat_id_check
 
 
-class RegFilter(BoundFilter):
-    async def check(self, obj):
+async def is_register(obj):
+    result = await chat_id_check()
+    if obj not in result:
+        return False
+    else:
+        return True

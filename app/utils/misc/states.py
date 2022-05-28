@@ -14,6 +14,6 @@ class FSMAdmin(StatesGroup):
 class FSMRegister(StatesGroup):
     chat_id = State()
     name = State()
-    username = State()
     position = State()
+    username = State()
     reg_time = State()

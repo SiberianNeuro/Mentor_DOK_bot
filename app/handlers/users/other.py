@@ -1,67 +1,75 @@
 from aiogram.dispatcher import FSMContext
 from aiogram import types, Dispatcher
 
+from app.filters.other import is_register
 from loader import dp, bot
-from aiogram.dispatcher.filters import CommandStart
+from aiogram.dispatcher.filters import Text, CommandStart
 from app.keyboards import other_kb
 from app.utils.misc.states import FSMRegister
+from app.db import mysql_db
 
-
-@dp.message_handler(CommandStart())
-async def commands_start(message: types.Message):
-    try:
-        await bot.send_message(message.from_user.id, text('Привет ✌  \nЯ помощник в медицинском отделе ДОК 🤖\n'
-                                                     'Чтобы узнать список команд, введи */help*'), parse_mode=ParseMode.MARKDOWN_V2)
-        await message.delete()
-    except:
-        await message.delete()
-
-# @dp.message_handler(commands='register', state=None)
-async def start_register(message: types.Message):
-    read = await sqlite_db.sql_staff_chat_id_read()
-    for i in read:
-        for j in i:
-            if message.from_user.id == j:
-                read = j
-    if message.from_user.id == read:
-        await bot.send_message(message.from_user.id, 'Ты уже регистрировался, регистрация не требуется')
+@dp.message_handler(CommandStart(), state="*")
+async def commands_start(m: types.Message, state: FSMContext):
+    await state.finish()
+    await m.answer_sticker('CAACAgIAAxkBAAIE4GKSGruXCE8S-gM_iIJyaTbM9TGYAAJPAAOtZbwUa5EcjYesr5MkBA')
+    await m.answer('Привет ✌\n\nЯ помощник в медицинском отделе ДОК 🤖\n'
+                                                     'Чтобы узнать список команд, введи <b>/help</b>')
+    if await is_register(m.from_user.id):
+        await m.answer('Вижу, что ты уже зарегистрирован 🤠\n\nЧем могу помочь?')
     else:
-        await FSMRegister.name.set()
-        await bot.send_message(message.from_user.id, 'Давай знакомиться✌️\nДля начала представься по фамилии, имени и отчеству.')
+        await m.answer('Вижу, что ты еще не проходил регистрацию 😱\n\n⬇️Скорее жми кнопку и начнём знакомиться⬇️',
+                       reply_markup=other_kb.get_register_button())
+    await m.delete()
 
-# @dp.message_handler(state='*', commands='отмена')
-# @dp.message_handler(Text(equals='отмена', ignore_case=True), state='*')
-async def cancel_handler(message: types.Message, state: FSMContext):
+
+@dp.callback_query_handler(other_kb.start_register.filter(status='yes'), state=None)
+async def start_register(c: types.CallbackQuery):
+    if await is_register(c.from_user.id):
+        await c.answer()
+        await c.message.answer('Ты уже регистрировался 👺')
+        await c.message.delete()
+    else:
+        await c.answer()
+        await FSMRegister.name.set()
+        await c.message.answer('Давай знакомиться✌️\n\n'
+                               'Если вдруг передумаешь регистрироваться, либо что-то напишешь не так,'
+                               ' жми кнопку <b>"Отмена"</b>,'
+                               'или снова напиши /start',
+                               reply_markup=other_kb.get_cancel_button())
+        await c.message.answer('Для начала напиши своё ФИО полностью кириллицей\n\n'
+                               '<b><i>Например: Погребной Данила Олегович</i></b>')
+        await c.message.delete()
+
+@dp.message_handler(state='*', commands='Отмена')
+@dp.message_handler(Text(equals='Отмена', ignore_case=True), state='*')
+async def cancel_handler(m: types.Message, state: FSMContext):
     current_state = await state.get_state()
     if current_state is None:
         return
     await state.finish()
-    await message.reply('Ну ладно')
+    await m.reply('Принято 👌')
 
-# @dp.message_handler(state=FSMRegister.name)
-async def enter_name(message: types.Message, state: FSMContext):
+
+@dp.message_handler(state=FSMRegister.name)
+async def enter_name(m: types.Message, state: FSMContext):
+    first_name = m.text.split()[1]
     async with state.proxy() as data:
-        data['name'] = message.text.title()
-    await bot.send_message(message.from_user.id, str(data))
+        data['name'] = m.text.title()
     await FSMRegister.next()
-    await bot.send_message(message.from_user.id, f'Приятно познакомиться, {message.text.split()[1]}, '
-                                                 f'а теперь расскажи мне, какая у тебя должность в ДОКе',
-                           reply_markup=other_kb.pos_case_button)
+    await m.answer(f'Приятно познакомиться, {first_name}!\n\nТеперь расскажи мне, какая у тебя должность в ДОКе',
+                           reply_markup=other_kb.get_pos_keyboard())
 
 
-# @dp.message_handler(state="*")
-async def enter_position(callback_query: types.CallbackQuery, state: FSMContext):
+@dp.callback_query_handler(other_kb.register_callback.filter(status='position'), state=FSMRegister.position)
+async def enter_position(c: types.CallbackQuery, state: FSMContext, callback_data: dict):
     async with state.proxy() as data:
-        data['pos'] = callback_query.data.title()
+        data['pos'] = callback_data.get("position")
         await FSMRegister.next()
-        data['username'] = '@' + callback_query.from_user.username
+        data['username'] = '@' + c.from_user.username
         await FSMRegister.next()
-        data['chat_id'] = callback_query.from_user.id
-        await FSMRegister.next()
-        data['reg_time'] = str(datetime.date.today())
-    await bot.send_message(callback_query.from_user.id, str(data))
-    await bot.send_message(callback_query.from_user.id, 'Готово')
-    await sqlite_db.sql_staff_add_command(state)
+        data['chat_id'] = c.from_user.id
+    await c.message.answer('Регистрация завершена, добро пожаловать :)')
+    await mysql_db.add_user(state)
     await state.finish()
 
 @dp.message_handler(lambda message: message.text.startswith('Спасибо') or message.text.startswith('спасибо'))

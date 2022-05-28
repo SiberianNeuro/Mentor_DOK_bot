@@ -6,7 +6,7 @@ from app.utils.misc.set_bot_commands import set_default_commands
 from app.utils.notify_admins import on_startup_notify
 from loader import dp
 
-from app.db import sqlite_db
+from app.db import mysql_db
 from app.handlers.users import admin, other, overlord
 
 
@@ -17,7 +17,7 @@ async def on_startup(dispatcher):
                         level=logging.INFO,
                         # level=logging.DEBUG,  # Можно заменить на другой уровень логгирования.
                         )
-    sqlite_db.sql_start()
+    await mysql_db.mysql_start()
 
 
 admin.register_handlers_admin(dp)

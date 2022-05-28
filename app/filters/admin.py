@@ -2,7 +2,7 @@ from aiogram import types
 
 from aiogram.dispatcher.filters import BoundFilter
 
-from app.db import sqlite_db
+from app.services.config import load_config
 
 
 class IsAdmin(BoundFilter):
