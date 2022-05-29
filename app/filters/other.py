@@ -7,7 +7,8 @@ from app.db.mysql_db import chat_id_check
 
 async def is_register(obj):
     result = await chat_id_check()
-    if obj not in result:
-        return False
-    else:
-        return True
+    for i in result:
+        if obj in i:
+            return True
+        else:
+            return False

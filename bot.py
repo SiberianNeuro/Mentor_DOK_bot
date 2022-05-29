@@ -17,7 +17,7 @@ async def on_startup(dispatcher):
                         level=logging.INFO,
                         # level=logging.DEBUG,  # Можно заменить на другой уровень логгирования.
                         )
-    await mysql_db.mysql_start()
+    mysql_db.mysql_start()
 
 
 admin.register_handlers_admin(dp)

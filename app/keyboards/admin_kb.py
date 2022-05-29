@@ -13,19 +13,19 @@ exam_callback = CallbackData('exam', 'action', 'action_data')
 def get_format_keyboard():
     buttons = [
         InlineKeyboardButton(
-            '🟡 Аттестация на 4 день', callback_data=exam_callback.new(action='format', action_data='Опрос 4-го дня')
+            '🟢 Аттестация на 4 день', callback_data=exam_callback.new(action='format', action_data='Опрос 4-го дня')
         ),
         InlineKeyboardButton(
             '🟡 Внутренняя аттестация', callback_data=exam_callback.new(action='format', action_data='Внутренний опрос')
         ),
         InlineKeyboardButton(
-            '🟡 На И.О.', callback_data=exam_callback.new(action='format', action_data='Со стажера на И.О.')
+            '🟠 На И.О.', callback_data=exam_callback.new(action='format', action_data='Со стажера на И.О.')
         ),
         InlineKeyboardButton(
             '🔴 На врача', callback_data=exam_callback.new(action='format', action_data='С И.О. на врача')
         ),
         InlineKeyboardButton(
-            '🟢 Аттестация помощника',
+            '🔵 Аттестация помощника',
             callback_data=exam_callback.new(action='format', action_data='Со стажера L1 на сотрудника')
         )
     ]

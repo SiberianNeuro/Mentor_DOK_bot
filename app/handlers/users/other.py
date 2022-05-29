@@ -11,15 +11,16 @@ from app.db import mysql_db
 @dp.message_handler(CommandStart(), state="*")
 async def commands_start(m: types.Message, state: FSMContext):
     await state.finish()
+    await m.delete()
     await m.answer_sticker('CAACAgIAAxkBAAIE4GKSGruXCE8S-gM_iIJyaTbM9TGYAAJPAAOtZbwUa5EcjYesr5MkBA')
     await m.answer('Привет ✌\n\nЯ помощник в медицинском отделе ДОК 🤖\n'
                                                      'Чтобы узнать список команд, введи <b>/help</b>')
     if await is_register(m.from_user.id):
-        await m.answer('Вижу, что ты уже зарегистрирован 🤠\n\nЧем могу помочь?')
+        await m.answer('Вижу, что ты уже зарегистрирован 🤠\n\nЧем могу помочь?', reply_markup=types.ReplyKeyboardRemove())
     else:
         await m.answer('Вижу, что ты еще не проходил регистрацию 😱\n\n⬇️Скорее жми кнопку и начнём знакомиться⬇️',
                        reply_markup=other_kb.get_register_button())
-    await m.delete()
+
 
 
 @dp.callback_query_handler(other_kb.start_register.filter(status='yes'), state=None)
@@ -40,14 +41,14 @@ async def start_register(c: types.CallbackQuery):
                                '<b><i>Например: Погребной Данила Олегович</i></b>')
         await c.message.delete()
 
-@dp.message_handler(state='*', commands='Отмена')
-@dp.message_handler(Text(equals='Отмена', ignore_case=True), state='*')
+@dp.message_handler(state='*', commands='отмена')
+@dp.message_handler(Text(equals='отмена', ignore_case=True), state='*')
 async def cancel_handler(m: types.Message, state: FSMContext):
     current_state = await state.get_state()
     if current_state is None:
         return
     await state.finish()
-    await m.reply('Принято 👌')
+    await m.reply('Принято 👌', reply_markup=types.ReplyKeyboardRemove())
 
 
 @dp.message_handler(state=FSMRegister.name)
@@ -68,7 +69,7 @@ async def enter_position(c: types.CallbackQuery, state: FSMContext, callback_dat
         data['username'] = '@' + c.from_user.username
         await FSMRegister.next()
         data['chat_id'] = c.from_user.id
-    await c.message.answer('Регистрация завершена, добро пожаловать :)')
+    await c.message.answer('Регистрация завершена, добро пожаловать :)', reply_markup=types.ReplyKeyboardRemove())
     await mysql_db.add_user(state)
     await state.finish()
 

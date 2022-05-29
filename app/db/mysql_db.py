@@ -1,11 +1,9 @@
 import pymysql.cursors
-import logging
 
 from app.services.config import load_config
 
 
-async def mysql_start():
-    global conn
+def mysql_start():
     config = load_config()
     conn = pymysql.connect(
             host=config.db.host,
@@ -16,20 +14,11 @@ async def mysql_start():
             charset='utf8mb4',
         )
     if conn:
-        logging.info('Database connected.')
+        print('Database connected.')
 
-# def sql_start():
-#     global base, cur
-#     base = sq.connect('mentor_base.db')
-#     cur = base.cursor()
-#     if base:
-#         logging.info('Database connected')
-#     base.execute('CREATE TABLE IF NOT EXISTS at_list(document TEXT, '
-#                  'name TEXT, format TEXT, status TEXT, link TEXT, '
-#                  'date DATE, exam_id INTEGER PRIMARY KEY)')
-#     base.execute('CREATE TABLE IF NOT EXISTS staff_DOK(name TEXT, position TEXT, username TEXT, chat_id INT, '
-#                  'reg_time TEXT)')
-#     base.commit()
+    return conn
+
+conn = mysql_start()
 
 
 """Запросы от администратора"""
@@ -39,7 +28,10 @@ async def mysql_start():
 async def sql_add_command(state):
     async with state.proxy() as data:
         with conn.cursor() as cur:
-            sql = "INSERT INTO exam_results (document_id, fullname, exam_format, exam_status, exam_YT_link, exam_date) VALUES (%s, %s, %s, %s, %s, CURRENT_DATE)"
+            sql = "INSERT INTO exams (document_id, " \
+                  "exam_score, fullname, exam_format, " \
+                  "exam_status, retake_date, exam_YT_link, exam_date) " \
+                  "VALUES (%s, %s, %s, %s, %s, %s, %s, CURRENT_DATE)"
             cur.execute(sql, tuple(data.values()))
             conn.commit()
 
@@ -47,7 +39,7 @@ async def sql_add_command(state):
 # Найти опрос по айдишнику документа
 async def item_search(data):
     with conn.cursor() as cur:
-        sql = "SELECT * FROM exam_results WHERE document_id = %s"
+        sql = "SELECT * FROM exams WHERE document_id = %s"
         cur.execute(sql, (data,))
         result = cur.fetchall()
     return result
@@ -56,7 +48,7 @@ async def item_search(data):
 # Найти все опросы по ФИО стажера
 async def name_search(data):
     with conn.cursor() as cur:
-        sql = "SELECT * FROM exam_results WHERE fullname LIKE %s"
+        sql = "SELECT * FROM exams WHERE fullname LIKE %s"
         cur.execute(sql, ('%' + data + '%',))
         result = cur.fetchall()
     return result
@@ -64,7 +56,7 @@ async def name_search(data):
 # Удалить запись об опросе
 async def sql_delete_command(data):
     with conn.cursor() as cur:
-        sql = "DELETE FROM exam_results WHERE idexam_results = %s"
+        sql = "DELETE FROM exams WHERE exam_id = %s"
         cur.execute(sql, (data,))
         conn.commit()
 
@@ -74,7 +66,7 @@ async def sql_delete_command(data):
 
 async def chat_id_check():
     with conn.cursor() as cur:
-        sql = "SELECT chat_id FROM DOK_users"
+        sql = "SELECT chat_id FROM users"
         cur.execute(sql)
         result = cur.fetchall()
     return result
@@ -83,6 +75,6 @@ async def chat_id_check():
 async def add_user(state):
     async with state.proxy() as data:
         with conn.cursor() as cur:
-            sql = "INSERT INTO DOK_users (fullname, pos, username, chat_id, reg_date) VALUES (%s, %s, %s, %s, CURRENT_DATE)"
+            sql = "INSERT INTO users (fullname, pos, username, chat_id, reg_date) VALUES (%s, %s, %s, %s, CURRENT_DATE)"
             cur.execute(sql, tuple(data.values()))
             conn.commit()
